@@ -1,0 +1,37 @@
+function [field2,spec,center]= modfield(L,D,center,field,amp)
+close all
+downsamp=1;
+if(D>L-2)
+    D2=D;
+    D=L-2;
+    downsamp=D2/D;
+end
+
+for i=(-D/2:D/2)+center(1)
+ ang=asin((i-center(1))/(D+2)*2);
+ start=int16(D/2*cos(pi-ang));
+ fin=int16(D/2*cos(ang));
+    for j=(start:fin)+center(2)
+        phase=amp*(rand(1)-0.5);
+        field(i:i+pix-1,j:j+pix-1)=field(i:i+pix-1,j:j+pix-1)+exp(1i*phase);
+    end
+end
+figure
+imshow(angle(field),pi*[-1 1]);
+spec=fftshift(fft2(field));
+spec=spec.*conj(spec)./L^2;
+[XI,YI]=meshgrid(1:downsamp:L);
+spec=interp2(spec,XI,YI);
+[XI,YI]=meshgrid(1:1/downsamp:L);
+spec=interp2(spec,XI,YI);
+spec=spec(1:L,1:L);
+
+figure
+imshow(spec,[0 max(max(spec))])
+
+[N,X]=hist(spec(:),1000);
+figure
+semilogy(X,N/length(spec(:)));
+xlabel('Intensity','FontSize',16)
+ylabel('PDF','FontSize',16)
+sum(N/length(spec(:)))
